@@ -3,14 +3,14 @@
 本项目为苏州科技大学JavaEE课程大作业
 This project is the final assignment for the JavaEE course at Suzhou University of Science and Technology（USTS）.
 
-##MySQL Tables
+## MySQL Tables
 Book：id,ISBN,name,publisher,price,stock
 Student：id,name,password
 Lend：id,stuid,bookid,btime,rtime
 admin：id,name,password
 
 
-##API
+## API
 POST	/student/login	学生登录
 POST	/admin/login	管理员登录
 POST	/register		学生注册

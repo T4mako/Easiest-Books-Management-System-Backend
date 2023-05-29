@@ -1,8 +1,8 @@
 # Easiest-Books-Management-System
 
-最简单的图书管理系统-后端实现（SpringBoot+MybatisPlus） 
-本项目为苏州科技大学JavaEE课程大作业 
-This project is the final assignment for the JavaEE course at Suzhou University of Science and Technology（USTS）.
+最简单的图书管理系统-后端实现（SpringBoot+MybatisPlus）   
+本项目为苏州科技大学JavaEE课程大作业     
+This project is the final assignment for the JavaEE course at Suzhou University of Science and Technology（USTS）.      
 
 ## MySQL Tables
 

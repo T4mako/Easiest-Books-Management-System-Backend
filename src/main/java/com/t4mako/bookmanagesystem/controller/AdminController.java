@@ -18,6 +18,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/admin")
+@CrossOrigin //设置响应头
 public class AdminController {
     @Autowired
     private AdminService adminService;

@@ -25,6 +25,7 @@ import java.util.UUID;
 @Slf4j //log
 @RestController
 @RequestMapping("/student")
+@CrossOrigin
 public class StudentController {
     @Autowired
     private StudentService studentService;
@@ -49,6 +50,7 @@ public class StudentController {
         }
         // 将学生ID保存到session中
         request.getSession().setAttribute("stuId",one.getId());
+        log.error(request.getSession().getId());
         return one.getPassword().equals(student.getPassword());
     }
 
@@ -99,6 +101,8 @@ public class StudentController {
         lend.setBookid(book.getId());
         lend.setBtime(LocalDateTime.now());
 
+        log.error(request.getSession().getId());
+
         // 从session中获取学生ID
         lend.setStuid(Integer.parseInt(request.getSession().getAttribute("stuId").toString()));
         // 插入lend记录
@@ -137,6 +141,16 @@ public class StudentController {
         LambdaQueryWrapper<Lend> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Lend::getStuid,stuId);
         return lendService.list(queryWrapper);
+    }
+
+    /**
+     * @Author T4mako
+     * @Description //TODO 查询所有图书
+     * @Date 16:45 2023/6/2
+     */
+    @GetMapping("/book/list")
+    public List<Book> allBook(){
+        return bookService.list();
     }
 
 }

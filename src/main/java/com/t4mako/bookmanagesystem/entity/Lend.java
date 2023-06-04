@@ -15,4 +15,5 @@ public class Lend {
     private Integer bookid;
     private LocalDateTime btime;
     private LocalDateTime rtime;
+    private String bookName;
 }

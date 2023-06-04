@@ -101,10 +101,11 @@ public class AdminController {
      * @Date 22:30 2023/5/28
      */
     @PutMapping("/book")
-    public void update(@RequestBody Book book){
+    public boolean update(@RequestBody Book book){
         LambdaUpdateWrapper<Book> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(Book::getId,book.getId());
         bookService.update(book,updateWrapper);
+        return true;
     }
 
     /**
@@ -112,9 +113,9 @@ public class AdminController {
      * @Description //TODO 删除图书
      * @Date 22:34 2023/5/28
      */
-    @DeleteMapping("/book")
-    public boolean delete(@RequestBody Book book){
-        bookService.removeById(book.getId());
+    @DeleteMapping("/book/{id}")
+    public boolean delete(@PathVariable Integer id){
+        bookService.removeById(id);
         return true;
     }
 }

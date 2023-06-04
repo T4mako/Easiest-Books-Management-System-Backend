@@ -11,6 +11,7 @@ import com.t4mako.bookmanagesystem.service.StudentService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpRequest;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -50,7 +51,7 @@ public class StudentController {
         }
         // 将学生ID保存到session中
         request.getSession().setAttribute("stuId",one.getId());
-        log.error(request.getSession().getId());
+//        log.error(request.getSession().getId());
         return one.getPassword().equals(student.getPassword());
     }
 
@@ -84,6 +85,7 @@ public class StudentController {
      * @Date 22:59 2023/5/28
      */
     @GetMapping("/borrow/{id}")
+    @Transactional
     public boolean borrow(@PathVariable Integer id,HttpServletRequest request){
         Book book = bookService.getById(id);
         // 库存量等于0，返回false
@@ -100,11 +102,13 @@ public class StudentController {
         lend.setId(UUID.randomUUID().toString());
         lend.setBookid(book.getId());
         lend.setBtime(LocalDateTime.now());
+        lend.setBookName(book.getName());
 
-        log.error(request.getSession().getId());
+//        log.error(request.getSession().getId());
 
         // 从session中获取学生ID
-        lend.setStuid(Integer.parseInt(request.getSession().getAttribute("stuId").toString()));
+//        lend.setStuid(Integer.parseInt(request.getSession().getAttribute("stuId").toString()));
+        lend.setStuid(1);
         // 插入lend记录
         lendService.save(lend);
         return true;
@@ -137,9 +141,10 @@ public class StudentController {
     @GetMapping("/borrowList")
     public List<Lend> borrowList(HttpServletRequest request){
         // 获取学生ID
-        Integer stuId = Integer.parseInt(request.getSession().getAttribute("stuId").toString());
+//        Integer stuId = Integer.parseInt(request.getSession().getAttribute("stuId").toString());
+        Integer stuId = 1;
         LambdaQueryWrapper<Lend> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Lend::getStuid,stuId);
+        queryWrapper.eq(Lend::getStuid,stuId).orderByDesc(Lend::getBtime);
         return lendService.list(queryWrapper);
     }
 

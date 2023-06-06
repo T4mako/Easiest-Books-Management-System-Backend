@@ -28,6 +28,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/student")
 @CrossOrigin
+@Transactional
 public class StudentController {
     @Autowired
     private StudentService studentService;
@@ -79,7 +80,6 @@ public class StudentController {
      * @Date 22:52 2023/5/28
      */
     @PostMapping("/register")
-    @Transactional
     public boolean register(@RequestBody Student student){
         LambdaQueryWrapper<Student> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Student::getName,student.getName());
@@ -110,7 +110,6 @@ public class StudentController {
      * @Date 22:59 2023/5/28
      */
     @GetMapping("/borrow/{id}")
-    @Transactional
     public boolean borrow(@PathVariable Integer id,HttpServletRequest request){
         Student student = null;
         String token = request.getHeader("token");

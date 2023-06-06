@@ -8,6 +8,7 @@ import com.t4mako.bookmanagesystem.service.AdminService;
 import com.t4mako.bookmanagesystem.service.BookService;
 import lombok.Lombok;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin")
 @CrossOrigin //设置响应头
+@Transactional
 public class AdminController {
     @Autowired
     private AdminService adminService;
@@ -31,6 +33,7 @@ public class AdminController {
      * @Date 11:24 2023/5/28
      */
     @PostMapping  ("/login")
+
     public boolean login(@RequestBody Admin admin){
         // 获取用户名和密码
         String name = admin.getName();

@@ -56,7 +56,7 @@ public class JwtUtils {
     }
 
     /**
-     * 正则表达式取值
+     * 正则表达式Token取值
      */
     public static String extractValue(String input, String key) {
         String regex = key + "=([^,}]+)";

@@ -2,15 +2,17 @@ package com.t4mako.bookmanagesystem.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.sun.xml.internal.fastinfoset.util.LocalNameQualifiedNamesMap;
 import com.t4mako.bookmanagesystem.entity.Book;
 import com.t4mako.bookmanagesystem.entity.Lend;
 import com.t4mako.bookmanagesystem.entity.Student;
 import com.t4mako.bookmanagesystem.service.BookService;
 import com.t4mako.bookmanagesystem.service.LendService;
 import com.t4mako.bookmanagesystem.service.StudentService;
+import com.t4mako.bookmanagesystem.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -26,6 +28,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/student")
 @CrossOrigin
+@Transactional
 public class StudentController {
     @Autowired
     private StudentService studentService;
@@ -34,24 +37,41 @@ public class StudentController {
     @Autowired
     private LendService lendService;
 
+
     /**
      * @Author T4mako
      * @Description //TODO 学生登录
      * @Date 16:57 2023/5/28
      */
     @PostMapping("/login")
-    public boolean login(@RequestBody Student student,HttpServletRequest request){
+    public String login(@RequestBody Student student,HttpServletRequest request){
+        String token = request.getHeader("token");
+        String str = null;
+        String name = null;
+        String password = null;
+        if(token != null){
+            // token不为空，解析token对应用户是否与登录用户相同
+            try {
+                str = String.valueOf(JwtUtils.parseToken(token));
+                name = JwtUtils.extractValue(str,"sub");
+                password = JwtUtils.extractValue(str,"password");
+                if(name.equals(student.getName()) && password.equals(student.getPassword())){
+                    return "true";
+                }
+            }catch (Exception e){
+                // 无法解析Token
+            }
+        }
         LambdaQueryWrapper<Student> queryWrapper = new LambdaQueryWrapper<>();
         // 查询同名的学生
         queryWrapper.eq(Student::getName,student.getName());
         Student one = studentService.getOne(queryWrapper);
-        if(one == null){
-            return false;
+        if(one == null || !one.getPassword().equals(student.getPassword())){
+            // 登录失败
+            return "false";
         }
-        // 将学生ID保存到session中
-        request.getSession().setAttribute("stuId",one.getId());
-        log.error(request.getSession().getId());
-        return one.getPassword().equals(student.getPassword());
+        // 返回生成 token
+        return JwtUtils.generateToken(one.getName(),one.getPassword());
     }
 
     /**
@@ -61,7 +81,13 @@ public class StudentController {
      */
     @PostMapping("/register")
     public boolean register(@RequestBody Student student){
+        LambdaQueryWrapper<Student> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Student::getName,student.getName());
+        if(studentService.getOne(queryWrapper) != null){
+            return false;
+        }
         return studentService.save(student);
+
     }
 
     /**
@@ -85,6 +111,17 @@ public class StudentController {
      */
     @GetMapping("/borrow/{id}")
     public boolean borrow(@PathVariable Integer id,HttpServletRequest request){
+        Student student = null;
+        String token = request.getHeader("token");
+        // 取出用户名，并取出用户
+        if(token != null){
+            String str = String.valueOf(JwtUtils.parseToken(token));
+            String name = JwtUtils.extractValue(str, "sub");
+            LambdaQueryWrapper<Student> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(Student::getName,name);
+            student = studentService.getOne(queryWrapper);
+        }
+        log.info(token);
         Book book = bookService.getById(id);
         // 库存量等于0，返回false
         if(book.getStock() <= 0){
@@ -100,11 +137,10 @@ public class StudentController {
         lend.setId(UUID.randomUUID().toString());
         lend.setBookid(book.getId());
         lend.setBtime(LocalDateTime.now());
+        lend.setBookName(book.getName());
 
-        log.error(request.getSession().getId());
-
-        // 从session中获取学生ID
-        lend.setStuid(Integer.parseInt(request.getSession().getAttribute("stuId").toString()));
+        // 通过
+        lend.setStuid(student.getId());
         // 插入lend记录
         lendService.save(lend);
         return true;
@@ -136,11 +172,22 @@ public class StudentController {
      */
     @GetMapping("/borrowList")
     public List<Lend> borrowList(HttpServletRequest request){
-        // 获取学生ID
-        Integer stuId = Integer.parseInt(request.getSession().getAttribute("stuId").toString());
-        LambdaQueryWrapper<Lend> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Lend::getStuid,stuId);
-        return lendService.list(queryWrapper);
+        // 获取token
+        String str = String.valueOf(JwtUtils.parseToken(request.getHeader("token")));
+
+        // token获取用户名
+        String name = JwtUtils.extractValue(str, "sub");
+        LambdaQueryWrapper<Student> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Student::getName,name);
+
+        // 查询用户id
+        Student one = studentService.getOne(queryWrapper);
+        Integer stuId = one.getId();
+
+        // 查询用户借阅
+        LambdaQueryWrapper<Lend> lendQueryWrapper = new LambdaQueryWrapper<>();
+        lendQueryWrapper.eq(Lend::getStuid,stuId).orderByDesc(Lend::getBtime);
+        return lendService.list(lendQueryWrapper);
     }
 
     /**

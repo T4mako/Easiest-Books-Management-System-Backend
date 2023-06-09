@@ -2,7 +2,6 @@ package com.t4mako.bookmanagesystem.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.sun.xml.internal.fastinfoset.util.LocalNameQualifiedNamesMap;
 import com.t4mako.bookmanagesystem.entity.Book;
 import com.t4mako.bookmanagesystem.entity.Lend;
 import com.t4mako.bookmanagesystem.entity.Student;
@@ -113,6 +112,11 @@ public class StudentController {
     public boolean borrow(@PathVariable Integer id,HttpServletRequest request){
         Student student = null;
         String token = request.getHeader("token");
+        Book book = bookService.getById(id);
+        // 库存量等于0，返回false
+        if(book.getStock() <= 0){
+            return false;
+        }
         // 取出用户名，并取出用户
         if(token != null){
             String str = String.valueOf(JwtUtils.parseToken(token));
@@ -120,11 +124,7 @@ public class StudentController {
             LambdaQueryWrapper<Student> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(Student::getName,name);
             student = studentService.getOne(queryWrapper);
-        }
-        log.info(token);
-        Book book = bookService.getById(id);
-        // 库存量等于0，返回false
-        if(book.getStock() <= 0){
+        } else{
             return false;
         }
         LambdaUpdateWrapper<Book> updateWrapper = new LambdaUpdateWrapper<>();
